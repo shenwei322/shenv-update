@@ -151,6 +151,8 @@ git push -u origin main
 
 4. 点 Deploy。构建会执行 `admin` 的 Vite 构建，并生成 `/api` 与 `/api/*` 两个 Serverless Function。
 
+> **Vercel 提示「找不到仓库 shenv-update」**：仓库本身是正常的私有仓库，问题在 Vercel 的 GitHub App 没有该仓库权限。到 GitHub → Settings → Applications → Vercel → Configure → Repository access，勾选 `shenwei322/shenv-update`；如果 Vercel 团队绑定的是另一个 GitHub 账号（如 `lmgodzilla`），把该账号加为仓库 Collaborator，或在 Vercel 里切换到 `shenwei322` 的 GitHub 连接。也可以在仓库 Settings 把代码仓库改为 public（里面没有密钥，状态仓库保持 private）后重新导入。
+
 ### 5. 绑定 api.shenv.top
 
 Vercel → Project → Settings → Domains → Add `api.shenv.top`，按提示添加 DNS：
