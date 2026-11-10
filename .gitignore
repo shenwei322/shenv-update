@@ -6,3 +6,5 @@ data/secret.key
 .vercel/
 *.log
 .DS_Store
+
+.vercel

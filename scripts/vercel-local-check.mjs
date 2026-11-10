@@ -12,10 +12,22 @@ assert.equal(
 );
 assert.equal(originalApiUrl({ path: ["admin", "releases", "1"] }), "/api/admin/releases/1");
 assert.equal(originalApiUrl({ path: "v1/announcements" }), "/api/v1/announcements");
+assert.equal(
+  originalApiUrl({ __path: "v1/update", current: "0.2.0" }),
+  "/api/v1/update?current=0.2.0"
+);
+assert.equal(
+  originalApiUrl({ __path: "admin/release/sync-github", pattern: "(?i)x" }),
+  "/api/admin/release/sync-github?pattern=%28%3Fi%29x"
+);
 
 const rewritten = { url: "/api", query: { path: ["v1", "update"], current: "0.2.0" } };
 setExpressUrl(rewritten);
 assert.equal(rewritten.url, "/api/v1/update?current=0.2.0");
+
+const rewriteVercel = { url: "/api/index", query: { __path: "v1/update", current: "0.2.0" } };
+setExpressUrl(rewriteVercel);
+assert.equal(rewriteVercel.url, "/api/v1/update?current=0.2.0");
 
 const preserved = { url: "/api/v1/update?current=0.2.0", query: { path: ["v1", "update"], current: "0.2.0" } };
 setExpressUrl(preserved);

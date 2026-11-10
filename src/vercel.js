@@ -1,6 +1,6 @@
-/// 把 Vercel 的 catch-all 路由还原成 Express 需要的原始 URL。
+/// 把 Vercel 的 catch-all / rewrite 路由还原成 Express 需要的原始 URL。
 export function originalApiUrl(query = {}) {
-  const rawPath = query.path;
+  const rawPath = query.__path ?? query.path;
   const segments = Array.isArray(rawPath)
     ? rawPath
     : typeof rawPath === "string" && rawPath.trim()
@@ -9,7 +9,7 @@ export function originalApiUrl(query = {}) {
 
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (key === "path") continue;
+    if (key === "path" || key === "__path") continue;
     if (Array.isArray(value)) {
       for (const item of value) params.append(key, String(item));
     } else if (value !== undefined && value !== null) {
@@ -26,12 +26,18 @@ export function originalApiUrl(query = {}) {
 }
 
 export function setExpressUrl(req) {
+  const query = req.query || {};
+  if (query.__path !== undefined) {
+    req.url = originalApiUrl(query);
+    return;
+  }
+
   const current = typeof req.url === "string" ? req.url : "";
-  const hasPath = Array.isArray(req.query?.path)
-    ? req.query.path.length > 0
-    : Boolean(req.query?.path);
+  const hasPath = Array.isArray(query.path)
+    ? query.path.length > 0
+    : Boolean(query.path);
 
   // Vercel 有时保留原始 URL，有时会重写成 /api；只在路径丢失时重建。
   if (current.startsWith("/api/") && current !== "/api") return;
-  if (hasPath) req.url = originalApiUrl(req.query || {});
+  if (hasPath) req.url = originalApiUrl(query);
 }
