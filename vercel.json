@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install --no-audit --no-fund",
+  "buildCommand": "npm --prefix admin install --no-audit --no-fund && npm --prefix admin run build",
+  "outputDirectory": "admin/dist",
   "functions": {
     "api/*.js": {
       "memory": 1024,
