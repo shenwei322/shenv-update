@@ -77,7 +77,9 @@ npm run smoke      # 需要 API 已启动，覆盖登录、验证码、发布、
 - 代码仓库：<https://github.com/shenwei322/shenv-update>（private）
 - 状态仓库：<https://github.com/shenwei322/shenv-state>（private，运行时写入 `state.json`）
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fshenwei322%2Fshenv-update&project-name=shenv-update&repository-name=shenv-update&env=PUBLIC_BASE_URL,ADMIN_USER,ADMIN_PASSWORD,SESSION_SECRET,STATE_REPO,STATE_TOKEN,STATE_PATH,STATE_BRANCH)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/import?s=https%3A%2F%2Fgithub.com%2Fshenwei322%2Fshenv-update)
+
+> 如果登录 Vercel 后出现 `vercel.com/2Fnew...` 这类 404，直接回到 <https://vercel.com/new> 或 <https://vercel.com/dashboard>，不要继续用错误地址。
 
 > GitHub Pages 只能托管静态文件，无法执行登录、验证码、写接口和 GitHub 状态同步；因此不要用纯 Pages 部署这个服务。下面的方案不需要服务器和付费套餐。
 
@@ -122,8 +124,9 @@ git push -u origin main
 
 ### 4. 导入 Vercel（免费）
 
-1. 打开 <https://vercel.com/new>，选择 `shenv-update` 仓库。
-2. 在 Configure Project 里设置：
+1. 登录后直接打开 <https://vercel.com/new/import?s=https%3A%2F%2Fgithub.com%2Fshenwei322%2Fshenv-update>，或打开 <https://vercel.com/new> 手动选择仓库。
+2. 如果列表里没有 `shenv-update`，点 **Adjust GitHub App Permissions**，给 Vercel GitHub App 授权这个私有仓库。
+3. 在 Configure Project 里设置：
    - **Framework Preset**：`Other`
    - **Install Command**：`npm install`
    - **Build Command**：`npm run build`
