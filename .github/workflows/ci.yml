@@ -14,8 +14,9 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-audit --no-fund
-      - run: node --check src/index.js && node --check src/app.js
-      - run: node --check scripts/smoke.mjs
+      - run: node --check src/index.js && node --check src/app.js && node --check src/vercel.js && node --check "api/[...path].js"
+      - run: node --check scripts/smoke.mjs && node --check scripts/vercel-local-check.mjs
+      - run: npm run vercel:check
       - name: Start server and run smoke test
         run: |
           node src/index.js &
