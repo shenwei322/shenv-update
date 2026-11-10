@@ -74,14 +74,19 @@ npm run smoke      # 需要 API 已启动，覆盖登录、验证码、发布、
 
 `api.shenv.top` 采用 **GitHub 仓库 + Vercel Hobby（免费）**：代码、Releases 和状态数据都在 GitHub，Vercel 只负责运行 Node API 与托管管理后台。
 
+- 代码仓库：<https://github.com/shenwei322/shenv-update>（private）
+- 状态仓库：<https://github.com/shenwei322/shenv-state>（private，运行时写入 `state.json`）
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fshenwei322%2Fshenv-update&project-name=shenv-update&repository-name=shenv-update&env=PUBLIC_BASE_URL,ADMIN_USER,ADMIN_PASSWORD,SESSION_SECRET,STATE_REPO,STATE_TOKEN,STATE_PATH,STATE_BRANCH)
+
 > GitHub Pages 只能托管静态文件，无法执行登录、验证码、写接口和 GitHub 状态同步；因此不要用纯 Pages 部署这个服务。下面的方案不需要服务器和付费套餐。
 
 ### 方式一：GitHub + Vercel（免费，推荐）
 
 ### 1. 准备两个 GitHub 仓库
 
-- **代码仓库**：`shenv-update`，放本目录（public/private 均可）。
-- **状态仓库**：`shenv-state`，必须 **private**，只保存 `data/state.json`。
+- **代码仓库**：`shenwei322/shenv-update`（已创建，private）。
+- **状态仓库**：`shenwei322/shenv-state`（已创建，private），只保存 `state.json`。
 
 ### 2. 创建状态仓库 Token
 
@@ -93,13 +98,23 @@ GitHub → Settings → Developer settings → Fine-grained tokens → Generate 
 
 ### 3. 推到 GitHub
 
+仓库已初始化并推送过，后续更新只需：
+
 ```bash
 cd D:\api\shenv-update
+git add .
+git commit -m "feat: update service"
+git push
+```
+
+首次从零开始时：
+
+```bash
 git init
 git add .
 git commit -m "feat: shenv update service"
 git branch -M main
-git remote add origin https://github.com/<你的账号>/shenv-update.git
+git remote add origin https://github.com/shenwei322/shenv-update.git
 git push -u origin main
 ```
 
@@ -117,7 +132,7 @@ git push -u origin main
 | `ADMIN_USER` | `admin` |
 | `ADMIN_PASSWORD` | 首次登录用的强密码 |
 | `SESSION_SECRET` | 至少 32 位随机字符串 |
-| `STATE_REPO` | `<你的账号>/shenv-state` |
+| `STATE_REPO` | `shenwei322/shenv-state` |
 | `STATE_TOKEN` | 第 2 步的 `github_pat_...` |
 | `STATE_PATH` | `state.json` |
 | `STATE_BRANCH` | `main` |
