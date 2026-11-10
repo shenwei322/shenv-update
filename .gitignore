@@ -1,0 +1,8 @@
+node_modules/
+admin/dist/
+data/state.json
+data/secret.key
+.env
+.vercel/
+*.log
+.DS_Store

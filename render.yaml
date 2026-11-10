@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: shenv-update
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install --no-audit --no-fund && npm --prefix admin install --no-audit --no-fund && npm --prefix admin run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: PUBLIC_BASE_URL
+        value: https://api.shenv.top
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      # 免费实例没有持久磁盘，建议把状态写到 GitHub 私有仓库：
+      # - key: STATE_REPO
+      #   sync: false
+      # - key: STATE_TOKEN
+      #   sync: false

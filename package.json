@@ -1,0 +1,22 @@
+{
+  "name": "shenv-update",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Turf Launcher update service and admin console",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "build": "npm --prefix admin install && npm --prefix admin run build",
+    "admin:dev": "npm --prefix admin run dev",
+    "smoke": "node scripts/smoke.mjs",
+    "vercel:check": "node scripts/vercel-local-check.mjs",
+    "check": "node --check src/index.js && node --check src/app.js && node --check src/store.js && node --check src/release.js && node --check src/vercel.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

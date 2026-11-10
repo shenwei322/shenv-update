@@ -1,0 +1,10 @@
+node_modules
+admin/node_modules
+admin/dist
+data
+logs
+.git
+.github
+.vercel
+*.log
+.env

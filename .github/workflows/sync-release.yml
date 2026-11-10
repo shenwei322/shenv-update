@@ -1,0 +1,30 @@
+name: sync-release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+concurrency:
+  group: shenv-release-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger shenv-update GitHub release sync
+        env:
+          API_BASE: ${{ secrets.SHENV_API_BASE }}
+          CRON_SECRET: ${{ secrets.SHENV_CRON_SECRET }}
+        run: |
+          if [ -z "$API_BASE" ] || [ -z "$CRON_SECRET" ]; then
+            echo "secrets.SHENV_API_BASE / SHENV_CRON_SECRET 未配置，跳过同步"
+            exit 0
+          fi
+          curl --fail-with-body --silent --show-error \
+            -X POST "${API_BASE%/}/api/cron/sync" \
+            -H "x-cron-secret: ${CRON_SECRET}" \
+            -H "Content-Type: application/json"

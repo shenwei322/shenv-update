@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: node --check src/index.js && node --check src/app.js
+      - run: node --check scripts/smoke.mjs
+      - name: Start server and run smoke test
+        run: |
+          node src/index.js &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8090/api/health >/dev/null && break
+            sleep 1
+          done
+          node scripts/smoke.mjs
+        env:
+          ADMIN_USER: admin
+          ADMIN_PASSWORD: ChangeMe_2026
+
+  admin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
