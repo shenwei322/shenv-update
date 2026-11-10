@@ -128,6 +128,8 @@ git push -u origin main
    - **Install Command**：`npm install`
    - **Build Command**：`npm run build`
    - **Output Directory**：`admin/dist`
+
+   根目录 `vercel.json` 已写同样的构建配置，导入时保持默认即可；如果面板覆盖了这些值，按上面的填写。
 3. 在 Environment Variables 添加（Production 与 Preview）：
 
 | 变量 | 值 |
