@@ -123,7 +123,11 @@ git push -u origin main
 ### 4. 导入 Vercel（免费）
 
 1. 打开 <https://vercel.com/new>，选择 `shenv-update` 仓库。
-2. Framework Preset 选 **Other**；构建与输出由根目录 `vercel.json` 接管。
+2. 在 Configure Project 里设置：
+   - **Framework Preset**：`Other`
+   - **Install Command**：`npm install`
+   - **Build Command**：`npm run build`
+   - **Output Directory**：`admin/dist`
 3. 在 Environment Variables 添加（Production 与 Preview）：
 
 | 变量 | 值 |
