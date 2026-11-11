@@ -49,6 +49,19 @@ function guessPackageType(assetName) {
   return "portable";
 }
 
+export function firstImageUrl(notes, assets = []) {
+  const text = String(notes || "");
+  for (const pattern of [
+    /!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/i,
+    /<img[^>]+src=["'](https?:\/\/[^"']+)["']/i,
+  ]) {
+    const match = pattern.exec(text);
+    if (match) return match[1];
+  }
+  const image = assets.find((asset) => /\.(png|jpe?g|webp|gif)$/i.test(String(asset.name || "")));
+  return image?.browser_download_url || "";
+}
+
 export function pickAsset(assets, pattern) {
   const list = Array.isArray(assets) ? assets.filter((asset) => asset && asset.name) : [];
   if (!list.length) return null;
@@ -85,6 +98,7 @@ export function mapGithubRelease(release, { pattern, previous } = {}) {
     updatedAt: now,
     source: "github",
     mirrors: [],
+    coverImage: firstImageUrl(release?.body, release?.assets),
     assetName: asset?.name || "",
   };
 }
@@ -134,6 +148,7 @@ export function buildPublicUpdate(state, query = {}) {
     releaseUrl: release.releaseUrl || "",
     minSupported,
     packageType: release.packageType === "installer" ? "installer" : "portable",
+    coverImage: /^https?:\/\//i.test(String(release.coverImage || "")) ? release.coverImage : "",
     download: {
       url: release.downloadUrl || "",
       sha256: String(release.sha256 || "").toLowerCase(),

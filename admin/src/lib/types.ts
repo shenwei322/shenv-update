@@ -51,6 +51,7 @@ export interface Release {
   publishedAt: number
   updatedAt: number
   source: ReleaseSource
+  coverImage?: string
 }
 
 export interface ReleaseInput {
@@ -67,6 +68,7 @@ export interface ReleaseInput {
   minSupported: string
   publishedAt?: number
   source?: ReleaseSource
+  coverImage?: string
 }
 
 export interface StatPoint {

@@ -56,6 +56,7 @@ export function initialState() {
       updatedAt: now,
       source: "manual",
       mirrors: [],
+      coverImage: "",
     },
     announcements: [
       {

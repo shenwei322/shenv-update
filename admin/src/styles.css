@@ -1541,7 +1541,7 @@ a {
 
 .gh-release-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 10px;
   max-height: 320px;
   overflow-y: auto;
@@ -1550,10 +1550,9 @@ a {
 
 .gh-release {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
+  align-items: stretch;
+  gap: 6px;
+  padding: 8px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--surface-2);
@@ -1562,7 +1561,7 @@ a {
   box-shadow: 0 1px 1px rgba(16, 24, 40, 0.03);
 }
 
-.gh-release:hover:not(:disabled) {
+.gh-release:hover {
   border-color: var(--line-strong);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
@@ -1573,16 +1572,54 @@ a {
   background: var(--accent-soft);
 }
 
-.gh-release:disabled {
+.gh-release-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 5px 6px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.gh-release-main:disabled {
   opacity: 0.65;
   cursor: default;
 }
 
-.gh-release-main {
+.gh-release-copy {
   display: flex;
   flex-direction: column;
   gap: 3px;
   min-width: 0;
+}
+
+.gh-release-push {
+  align-self: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(63, 157, 87, 0.28);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.gh-release-push:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+.gh-release-push:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .gh-release-top {
@@ -2060,4 +2097,81 @@ a {
   .page-foot .btn {
     justify-content: center;
   }
+}
+
+/* 版本发布弹窗与封面 */
+.publish-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.publish-cover,
+.release-cover-preview {
+  position: relative;
+  width: 100%;
+  min-height: 160px;
+  max-height: 220px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.publish-cover img,
+.release-cover-preview img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.release-cover-preview {
+  min-height: 0;
+  max-height: 180px;
+}
+
+.release-cover-preview img {
+  height: 180px;
+}
+
+.publish-image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.publish-image {
+  width: 86px;
+  height: 56px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-2);
+}
+
+.publish-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.publish-image.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(63, 157, 87, 0.16);
+}
+
+.publish-notes {
+  max-height: 230px;
+  overflow-y: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
 }

@@ -61,7 +61,7 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+    "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; font-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
   );
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Cron-Secret");
@@ -108,6 +108,10 @@ function cleanRelease(body, previous) {
   const releaseUrl = body?.releaseUrl === undefined ? previous.releaseUrl || "" : text(body.releaseUrl, 800);
   if (releaseUrl && !isHttpUrl(releaseUrl)) throw httpError(400, "发布页地址必须是 http(s) 链接");
 
+  const coverImage =
+    body?.coverImage === undefined ? previous.coverImage || "" : text(body.coverImage, 800);
+  if (coverImage && !isHttpUrl(coverImage)) throw httpError(400, "封面图必须是 http(s) 图片地址");
+
   const sha256 = String(body?.sha256 ?? previous.sha256 ?? "")
     .trim()
     .toLowerCase();
@@ -139,6 +143,7 @@ function cleanRelease(body, previous) {
     size: Math.round(number(body?.size ?? previous.size ?? 0, 0, 4 * 1024 * 1024 * 1024)),
     releaseUrl,
     minSupported: minSupported || "0.0.0",
+    coverImage,
     publishedAt: Number(body?.publishedAt) > 0 ? Number(body.publishedAt) : Number(previous.publishedAt) || now,
     updatedAt: now,
     source: source === "github" || source === "manual" ? source : previous.source || "manual",
