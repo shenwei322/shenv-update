@@ -1141,7 +1141,7 @@ a {
 }
 
 .switch.is-on .switch-knob {
-  background: var(--accent);
+  background: #ffffff;
 }
 
 .switch-line {
