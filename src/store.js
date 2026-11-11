@@ -317,6 +317,17 @@ export async function recordStat(field) {
   }
 
   pruneDaily(stats.daily);
+
+  // Serverless 函数返回后定时器会被冻结，启动计数必须当场落盘。
+  if (IS_GITHUB_STORAGE && field === "launches") {
+    try {
+      await flushStats();
+    } catch (error) {
+      console.error("[state] 启动统计写入失败", error);
+    }
+    return;
+  }
+
   scheduleStatPersist();
 }
 
