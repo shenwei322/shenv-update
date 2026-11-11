@@ -8,3 +8,4 @@ data/secret.key
 .DS_Store
 
 .vercel
+admin/public/update/
