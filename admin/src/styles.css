@@ -2125,9 +2125,11 @@ a {
 .publish-cover img,
 .release-cover-preview img {
   width: 100%;
-  height: 220px;
-  object-fit: cover;
+  height: 100%;
+  padding: 8px;
+  object-fit: contain;
   display: block;
+  background: var(--surface-2);
 }
 
 .release-cover-preview {
@@ -2174,4 +2176,17 @@ a {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--surface-2);
+}
+
+.publish-cover {
+  height: 200px;
+  min-height: 0;
+}
+
+.publish-cover img {
+  height: 200px;
+}
+
+.release-cover-preview {
+  height: 180px;
 }
