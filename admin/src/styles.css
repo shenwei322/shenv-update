@@ -2190,3 +2190,31 @@ a {
 .release-cover-preview {
   height: 180px;
 }
+
+.release-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.release-current strong {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.release-current-title {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.release-current-meta {
+  font-size: 12px;
+  color: var(--muted);
+}

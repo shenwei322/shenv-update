@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowRight,
   Check,
+  ChevronLeft,
   CircleAlert,
   Copy,
   GitBranch,
@@ -25,7 +26,6 @@ import { pulseElement } from '../lib/gsap'
 import { copyText } from '../lib/clipboard'
 import { toast } from '../lib/toast'
 import { Field } from '../components/Field'
-import { Modal } from '../components/Modal'
 import { Segmented } from '../components/Segmented'
 import { MarkdownPreview } from '../components/MarkdownPreview'
 import { Skeleton } from '../components/Skeleton'
@@ -67,23 +67,6 @@ const EMPTY_FORM: ReleaseForm = {
   minSupported: '0.0.0',
   source: 'manual',
   coverImage: '',
-}
-
-function collectImages(notes: string, assets: { name: string; url: string }[] = []) {
-  const urls: string[] = []
-  const push = (url: string) => {
-    if (/^https?:\/\//i.test(url) && !urls.includes(url)) urls.push(url)
-  }
-  for (const pattern of [
-    /!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/gi,
-    /<img[^>]+src=["'](https?:\/\/[^"']+)["']/gi,
-  ]) {
-    for (const match of String(notes || '').matchAll(pattern)) push(match[1])
-  }
-  for (const asset of assets) {
-    if (/\.(png|jpe?g|webp|gif)$/i.test(asset.name)) push(asset.url)
-  }
-  return urls
 }
 
 function formFromRelease(release: Release): ReleaseForm {
@@ -158,11 +141,8 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
   const [githubReleases, setGithubReleases] = useState<GithubReleaseItem[]>([])
   const [releasesLoading, setReleasesLoading] = useState(false)
   const [releasesError, setReleasesError] = useState<string | null>(null)
-  const [publishItem, setPublishItem] = useState<GithubReleaseItem | null>(null)
-  const [publishPreview, setPublishPreview] = useState<Release | null>(null)
-  const [publishLoading, setPublishLoading] = useState(false)
-  const [publishing, setPublishing] = useState(false)
-  const [publishImage, setPublishImage] = useState('')
+  const [currentRelease, setCurrentRelease] = useState<Release | null>(null)
+  const [mode, setMode] = useState<'list' | 'publish'>('list')
 
   const saveButtonRef = useRef<HTMLButtonElement | null>(null)
   const previewRef = useRef<HTMLDivElement | null>(null)
@@ -183,10 +163,12 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
     if (!quiet) setLoading(true)
     try {
       const release = await api.release.get()
+      setCurrentRelease(release)
       setForm(formFromRelease(release))
       setLoadError(null)
     } catch (caught) {
       if (caught instanceof ApiError && caught.status === 404) {
+        setCurrentRelease(null)
         setForm(EMPTY_FORM)
         setLoadError(null)
         if (!quiet) toast.info('还没有发布任何版本，填写后保存即可')
@@ -264,6 +246,7 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
         flashTimer.current = null
       }, 2000)
       await load(true)
+      setMode('list')
     } catch (caught) {
       toast.error(errorMessage(caught))
     } finally {
@@ -293,76 +276,13 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
     }
   }
 
-  const pickRelease = (tag: string) => {
-    setSyncTag(tag)
-    void runSync(tag)
-  }
-
-  const openPublish = async (item: GithubReleaseItem) => {
-    setPublishItem(item)
-    setPublishPreview(null)
-    setPublishImage('')
-    setPublishLoading(true)
-    try {
-      const result = await api.release.syncGithub({
-        tag: item.tag,
-        pattern: syncPattern.trim() || undefined,
-      })
-      setPublishPreview(result.release)
-      const images = collectImages(result.release.notes, item.assets)
-      setPublishImage(result.release.coverImage || images[0] || '')
-    } catch (caught) {
-      setPublishItem(null)
-      toast.error(errorMessage(caught))
-    } finally {
-      setPublishLoading(false)
+  const startPublish = (tag?: string) => {
+    setMode('publish')
+    if (tag) {
+      setSyncTag(tag)
+      void runSync(tag)
     }
   }
-
-  const closePublish = () => {
-    if (publishing) return
-    setPublishItem(null)
-    setPublishPreview(null)
-    setPublishImage('')
-  }
-
-  const publishNow = async () => {
-    if (!publishPreview || !publishItem || publishing) return
-    if (!publishPreview.downloadUrl) {
-      toast.error('没有匹配到安装包资产，请先检查资产匹配正则')
-      return
-    }
-    setPublishing(true)
-    try {
-      await api.release.save({
-        version: publishPreview.version,
-        title: publishPreview.title,
-        notes: publishPreview.notes,
-        force: form.force,
-        channel: form.channel,
-        packageType: publishPreview.packageType,
-        downloadUrl: publishPreview.downloadUrl,
-        sha256: publishPreview.sha256,
-        size: publishPreview.size,
-        releaseUrl: publishPreview.releaseUrl,
-        minSupported: form.minSupported,
-        source: 'github',
-        coverImage: publishImage.trim(),
-      })
-      toast.success(`已推送 v${publishPreview.version}`)
-      setPublishItem(null)
-      setPublishPreview(null)
-      setPublishImage('')
-      await load(true)
-    } catch (caught) {
-      toast.error(errorMessage(caught))
-    } finally {
-      setPublishing(false)
-    }
-  }
-
-  const publishImages =
-    publishPreview && publishItem ? collectImages(publishPreview.notes, publishItem.assets) : []
 
   const applyPreview = () => {
     if (!syncResult) return
@@ -390,23 +310,38 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
     <div className="page">
       <header className="page-head">
         <p className="page-desc">
-          发布启动器版本；强制更新开启后，启动器不显示「跳过此版本」按钮。
+          {mode === 'list'
+            ? '查看当前线上版本与 GitHub Release，点击版本或「发布更新」进入发布内容。'
+            : '填写发布内容；强制更新开启后，启动器不显示「跳过此版本」按钮。'}
         </p>
         <div className="page-actions">
           <button type="button" className="btn" onClick={() => void copyEndpoint()}>
             <Copy size={16} />
             复制更新接口地址
           </button>
-          <button
-            type="button"
-            ref={saveButtonRef}
-            className={saved ? 'btn btn-primary is-saved' : 'btn btn-primary'}
-            onClick={() => void save()}
-            disabled={saving || loading}
-          >
-            {saved ? <Check size={16} /> : <Save size={16} />}
-            {saving ? '保存中…' : saved ? '已保存' : '保存发布'}
-          </button>
+          {mode === 'list' ? (
+            <button type="button" className="btn btn-primary" onClick={() => startPublish()}>
+              <Save size={16} />
+              发布更新
+            </button>
+          ) : (
+            <>
+              <button type="button" className="btn" onClick={() => setMode('list')}>
+                <ChevronLeft size={16} />
+                返回列表
+              </button>
+              <button
+                type="button"
+                ref={saveButtonRef}
+                className={saved ? 'btn btn-primary is-saved' : 'btn btn-primary'}
+                onClick={() => void save()}
+                disabled={saving || loading}
+              >
+                {saved ? <Check size={16} /> : <Save size={16} />}
+                {saving ? '发布中…' : saved ? '已发布' : '保存发布'}
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -419,17 +354,49 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
 
       {loading ? <Skeleton rows={8} /> : null}
 
-      <section className="card gh-card">
-        <div className="card-head">
-          <div>
-            <h2 className="card-title">
-              <GitBranch size={16} />
-              GitHub 项目发布
-            </h2>
-            <p className="card-sub">
-              当前仓库：{repo || '未配置，请先在设置页填写 GitHub repo'}
-            </p>
-          </div>
+      {mode === 'list' ? (
+        <>
+          <section className="card">
+            <div className="card-head">
+              <div>
+                <h2 className="card-title">
+                  <GitBranch size={16} />
+                  当前线上版本
+                </h2>
+                <p className="card-sub">启动器下一次检查更新会读取这里的内容</p>
+              </div>
+              {currentRelease ? (
+                <span className="badge badge-ok">v{currentRelease.version}</span>
+              ) : null}
+            </div>
+            {currentRelease ? (
+              <div className="release-current">
+                <strong>v{currentRelease.version}</strong>
+                <span className="release-current-title">{currentRelease.title}</span>
+                <span className="release-current-meta">
+                  {formatDateTime(currentRelease.publishedAt)} · {currentRelease.packageType}
+                </span>
+                {currentRelease.force ? <span className="badge badge-warn">强制更新</span> : null}
+              </div>
+            ) : (
+              <div className="empty">
+                <p className="empty-title">还没有发布版本</p>
+                <p className="empty-hint">点右上角「发布更新」填写发布内容。</p>
+              </div>
+            )}
+          </section>
+
+          <section className="card gh-card">
+            <div className="card-head">
+              <div>
+                <h2 className="card-title">
+                  <GitBranch size={16} />
+                  更新推送列表
+                </h2>
+                <p className="card-sub">
+                  当前仓库：{repo || '未配置，请先在设置页填写 GitHub repo'}
+                </p>
+              </div>
           <div className="gh-actions">
             <span className={github?.autoSync ? 'badge badge-ok' : 'badge badge-muted'}>
               {github?.autoSync ? '自动同步已开启' : '自动同步已关闭'}
@@ -468,7 +435,7 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
                 <button
                   type="button"
                   className="gh-release-main"
-                  onClick={() => pickRelease(item.tag)}
+                  onClick={() => startPublish(item.tag)}
                   disabled={syncing}
                 >
                   <span className="gh-release-copy">
@@ -486,20 +453,14 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
                     {syncingTag === item.tag ? '拉取中…' : <ArrowRight size={16} />}
                   </span>
                 </button>
-                <button
-                  type="button"
-                  className="gh-release-push"
-                  onClick={() => void openPublish(item)}
-                  disabled={syncing || publishing}
-                >
-                  发布推送
-                </button>
               </article>
             ))}
           </div>
         )}
       </section>
-
+        </>
+      ) : (
+        <>
       <section className="card">
         <div className="card-head">
           <div>
@@ -815,110 +776,6 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
         </section>
       </form>
 
-      {publishItem ? (
-        <Modal
-          title={`发布推送 ${publishItem.tag || ''}`}
-          subtitle={publishPreview?.title || publishItem.name}
-          onClose={closePublish}
-          width={760}
-          footer={
-            <>
-              <button type="button" className="btn" onClick={closePublish} disabled={publishing}>
-                取消
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => void publishNow()}
-                disabled={
-                  publishing || publishLoading || !publishPreview || !publishPreview.downloadUrl
-                }
-              >
-                {publishing ? '推送中…' : '确认发布推送'}
-              </button>
-            </>
-          }
-        >
-          {publishLoading ? (
-            <Skeleton rows={5} />
-          ) : publishPreview ? (
-            <div className="publish-dialog">
-              <div className="publish-cover">
-                {publishImage ? (
-                  <img src={publishImage} alt="更新封面预览" />
-                ) : (
-                  <span>从下方选择一张封面图，或填入图片 URL</span>
-                )}
-              </div>
-
-              <Field
-                label="封面图 URL"
-                htmlFor="publish-cover-url"
-                hint="会显示在启动器更新弹窗顶部，可留空"
-              >
-                <input
-                  id="publish-cover-url"
-                  className="input"
-                  value={publishImage}
-                  onChange={(event) => setPublishImage(event.target.value)}
-                  placeholder="https://example.com/update-cover.png"
-                  spellCheck={false}
-                />
-              </Field>
-
-              {(publishImage && !publishImages.includes(publishImage)
-                ? [publishImage, ...publishImages]
-                : publishImages
-              ).length > 0 ? (
-                <div className="publish-image-list">
-                  {(publishImage && !publishImages.includes(publishImage)
-                    ? [publishImage, ...publishImages]
-                    : publishImages
-                  ).map((url) => (
-                    <button
-                      type="button"
-                      key={url}
-                      className={publishImage === url ? 'publish-image is-active' : 'publish-image'}
-                      onClick={() => setPublishImage(url)}
-                    >
-                      <img src={url} alt="可选封面" />
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-
-              <div className="publish-notes">
-                <MarkdownPreview source={publishPreview.notes} emptyText="这个 Release 没有更新说明" />
-              </div>
-
-              <div className="switch-line">
-                <span className="switch-control">
-                  <span className="switch-title">强制更新</span>
-                  <span className="switch-sub">发布后启动器不显示「跳过此版本」</span>
-                </span>
-                <Switch
-                  checked={form.force}
-                  onChange={(next) => setField('force', next)}
-                  label="强制更新"
-                />
-              </div>
-
-              {!publishPreview.downloadUrl ? (
-                <p className="inline-error">
-                  <CircleAlert size={14} />
-                  没有匹配到安装包资产，请检查「资产匹配正则」。
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <p className="inline-error">
-              <CircleAlert size={14} />
-              没有拿到 Release 预览，请重试。
-            </p>
-          )}
-        </Modal>
-      ) : null}
-
       <div className="page-foot">
         <span className="field-hint">保存后启动器下一次检查更新即可拿到新版本。</span>
         <button
@@ -931,6 +788,8 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
           {saving ? '保存中…' : saved ? '已保存' : '保存发布'}
         </button>
       </div>
+        </>
+      )}
     </div>
   )
 }
