@@ -4,7 +4,6 @@ import {
   Check,
   ChevronLeft,
   CircleAlert,
-  Copy,
   GitBranch,
   RefreshCw,
   Save,
@@ -23,7 +22,6 @@ import type {
 } from '../lib/types'
 import { formatBytes, formatDateTime, isHttpUrl, isValidVersion, normalizeVersion, summarize } from '../lib/format'
 import { pulseElement } from '../lib/gsap'
-import { copyText } from '../lib/clipboard'
 import { toast } from '../lib/toast'
 import { Field } from '../components/Field'
 import { Segmented } from '../components/Segmented'
@@ -32,7 +30,6 @@ import { Skeleton } from '../components/Skeleton'
 import { Switch } from '../components/Switch'
 
 interface ReleasePageProps {
-  apiBase: string
   repo: string
   defaultPattern: string
 }
@@ -126,7 +123,7 @@ function toPayload(form: ReleaseForm): ReleaseInput {
   }
 }
 
-export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps) {
+export function ReleasePage({ repo, defaultPattern }: ReleasePageProps) {
   const [form, setForm] = useState<ReleaseForm>(EMPTY_FORM)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -220,14 +217,6 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
     setForm((current) => ({ ...current, [key]: value }))
   }
 
-  const endpoint = `${apiBase.replace(/\/+$/, '')}/api/v1/update?current=0.0.0&platform=windows&arch=x86_64`
-
-  const copyEndpoint = async () => {
-    const ok = await copyText(endpoint)
-    if (ok) toast.success('已复制更新接口地址')
-    else toast.error('复制失败，请手动选择地址复制')
-  }
-
   const save = async () => {
     const message = validateForm(form)
     if (message) {
@@ -315,10 +304,6 @@ export function ReleasePage({ apiBase, repo, defaultPattern }: ReleasePageProps)
             : '填写发布内容；强制更新开启后，启动器不显示「跳过此版本」按钮。'}
         </p>
         <div className="page-actions">
-          <button type="button" className="btn" onClick={() => void copyEndpoint()}>
-            <Copy size={16} />
-            复制更新接口地址
-          </button>
           {mode === 'list' ? (
             <button type="button" className="btn btn-primary" onClick={() => startPublish()}>
               <Save size={16} />

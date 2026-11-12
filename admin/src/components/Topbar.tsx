@@ -2,7 +2,6 @@ import { Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 
 interface TopbarProps {
   title: string
-  apiBase: string
   wide: boolean
   collapsed: boolean
   onToggleCollapse: () => void
@@ -11,7 +10,6 @@ interface TopbarProps {
 
 export function Topbar({
   title,
-  apiBase,
   wide,
   collapsed,
   onToggleCollapse,
@@ -41,9 +39,6 @@ export function Topbar({
         <span className="status">
           <span className="status-dot" aria-hidden="true" />
           在线
-        </span>
-        <span className="api-base" title={apiBase}>
-          {apiBase || '未配置 apiBase'}
         </span>
       </div>
     </header>

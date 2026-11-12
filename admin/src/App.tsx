@@ -24,7 +24,6 @@ const PAGE_TITLES: Record<PageId, string> = {
 }
 
 const DEFAULT_SITE_NAME = 'Turf Launcher 更新服务'
-const DEFAULT_API_BASE = 'https://api.shenv.top'
 
 interface NavIntent {
   page: PageId
@@ -127,7 +126,6 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [])
 
-  const apiBase = settings?.apiBase || DEFAULT_API_BASE
   const siteName = settings?.siteName || DEFAULT_SITE_NAME
   const username = session?.username || 'admin'
 
@@ -138,7 +136,6 @@ export default function App() {
       case 'release':
         return (
           <ReleasePage
-            apiBase={apiBase}
             repo={settings?.github.repo ?? ''}
             defaultPattern={settings?.github.assetPattern ?? ''}
           />
@@ -187,7 +184,6 @@ export default function App() {
         <div className="app-main">
           <Topbar
             title={PAGE_TITLES[page]}
-            apiBase={apiBase}
             wide={wide}
             collapsed={collapsed}
             onToggleCollapse={() => setCollapsed((value) => !value)}
